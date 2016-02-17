@@ -69,15 +69,21 @@ def playerStandings():
     """
     db = connect()
     c = db.cursor()
+    """create view for record wins of each players"""
     win_query = "create view win_num as select players.id, players.name, count(matches.winner) as wins from players left join matches on players.id = matches.winner group by players.id order by wins desc;"
+
+    """create view for record matches of each players"""
     match_query = "create view match_num as select players.id, players.name, count(matches.winner) as matches from players left join matches on players.id = matches.playerl or players.id = matches.playerr group by players.id order by matches desc;"
+
+    """join two views to get final tuples"""
     stand_query = "select win_num.id, win_num.name, win_num.wins, match_num.matches from win_num join match_num on win_num.id = match_num.id order by win_num.wins desc;"
+
     c.execute(win_query)
     c.execute(match_query)
     c.execute(stand_query)
     rows = c.fetchall()
-    c.execute("drop view win_num")
-    c.execute("drop view match_num")
+    c.execute("drop view win_num;")
+    c.execute("drop view match_num;")
     db.close()
     return rows
     
@@ -88,7 +94,11 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
- 
+    db = connect()
+    c = db.cursor()
+    c.execute("insert into matches (playerl, playerr, winner) values (%s, %s, %s);", (winner, loser, winner))
+    db.commit()
+    db.close()
  
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
@@ -105,5 +115,18 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    standings = playerStandings()
+    parings = []
+
+    for i in range(0, len(standings) / 2):
+        tup1 = (standings[i * 2][0], standings[i * 2][1])
+        tup2 = (standings[i * 2 + 1][0], standings[i * 2 + 1][1])
+        parings.append(tup1 + tup2)
+
+    return parings
+        
+ 
+    
+ 
 
 
