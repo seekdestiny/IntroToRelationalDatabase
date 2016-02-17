@@ -34,6 +34,7 @@ def countPlayers():
     db = connect()
     c = db.cursor()
     c.execute("select count(*) from players;")
+    """get first col of first row from aggregate results."""
     num = c.fetchall()[0][0]
     db.close()
     return num
@@ -66,8 +67,20 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-
-
+    db = connect()
+    c = db.cursor()
+    win_query = "create view win_num as select players.id, players.name, count(matches.winner) as wins from players left join matches on players.id = matches.winner group by players.id order by wins desc;"
+    match_query = "create view match_num as select players.id, players.name, count(matches.winner) as matches from players left join matches on players.id = matches.playerl or players.id = matches.playerr group by players.id order by matches desc;"
+    stand_query = "select win_num.id, win_num.name, win_num.wins, match_num.matches from win_num join match_num on win_num.id = match_num.id order by win_num.wins desc;"
+    c.execute(win_query)
+    c.execute(match_query)
+    c.execute(stand_query)
+    rows = c.fetchall()
+    c.execute("drop view win_num")
+    c.execute("drop view match_num")
+    db.close()
+    return rows
+    
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
 
