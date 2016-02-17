@@ -70,13 +70,26 @@ def playerStandings():
     db = connect()
     c = db.cursor()
     """create view for record wins of each players"""
-    win_query = "create view win_num as select players.id, players.name, count(matches.winner) as wins from players left join matches on players.id = matches.winner group by players.id order by wins desc;"
+    win_query = '''create view win_num as 
+                   select players.id, players.name, count(matches.winner) as wins 
+                   from players left join matches 
+                   on players.id = matches.winner 
+                   group by players.id 
+                   order by wins desc;'''
 
     """create view for record matches of each players"""
-    match_query = "create view match_num as select players.id, players.name, count(matches.winner) as matches from players left join matches on players.id = matches.playerl or players.id = matches.playerr group by players.id order by matches desc;"
+    match_query = '''create view match_num as 
+                     select players.id, players.name, count(matches.winner) as matches 
+                     from players left join matches 
+                     on players.id = matches.playerl or players.id = matches.playerr 
+                     group by players.id 
+                     order by matches desc;'''
 
     """join two views to get final tuples"""
-    stand_query = "select win_num.id, win_num.name, win_num.wins, match_num.matches from win_num join match_num on win_num.id = match_num.id order by win_num.wins desc;"
+    stand_query = '''select win_num.id, win_num.name, win_num.wins, match_num.matches 
+                     from win_num join match_num 
+                     on win_num.id = match_num.id 
+                     order by win_num.wins desc;'''
 
     c.execute(win_query)
     c.execute(match_query)
